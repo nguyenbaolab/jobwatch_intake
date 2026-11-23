@@ -1,0 +1,142 @@
+{
+  "$defs": {
+    "LanguageNeedDTO": {
+      "additionalProperties": false,
+      "description": "Yêu cầu một ngôn ngữ. Đây là trường quan trọng nhất của bộ nhãn.",
+      "properties": {
+        "requirement": {
+          "$ref": "#/$defs/Requirement",
+          "default": "not_mentioned"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "default": "unspecified"
+        }
+      },
+      "title": "LanguageNeedDTO",
+      "type": "object"
+    },
+    "Level": {
+      "enum": [
+        "unspecified",
+        "basic",
+        "good",
+        "fluent",
+        "native"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "Requirement": {
+      "enum": [
+        "required",
+        "preferred",
+        "not_mentioned"
+      ],
+      "title": "Requirement",
+      "type": "string"
+    },
+    "WorkMode": {
+      "enum": [
+        "onsite",
+        "hybrid",
+        "remote",
+        "unspecified"
+      ],
+      "title": "WorkMode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "labeler": {
+      "title": "Labeler",
+      "type": "string"
+    },
+    "labeled_at": {
+      "format": "date",
+      "title": "Labeled At",
+      "type": "string"
+    },
+    "skills_required": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Skills Required",
+      "type": "array"
+    },
+    "skills_preferred": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Skills Preferred",
+      "type": "array"
+    },
+    "finnish": {
+      "$ref": "#/$defs/LanguageNeedDTO"
+    },
+    "swedish": {
+      "$ref": "#/$defs/LanguageNeedDTO"
+    },
+    "english": {
+      "$ref": "#/$defs/LanguageNeedDTO"
+    },
+    "experience_years_min": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Experience Years Min"
+    },
+    "city": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "City"
+    },
+    "work_mode": {
+      "$ref": "#/$defs/WorkMode",
+      "default": "unspecified"
+    },
+    "deadline": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Deadline"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    }
+  },
+  "required": [
+    "job_id",
+    "labeler",
+    "labeled_at"
+  ],
+  "title": "GoldLabel",
+  "type": "object"
+}

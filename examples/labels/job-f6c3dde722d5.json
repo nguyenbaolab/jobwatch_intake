@@ -1,0 +1,15 @@
+{
+  "job_id": "job-f6c3dde722d5",
+  "labeler": "vi-du",
+  "labeled_at": "2026-11-22",
+  "skills_required": ["kotlin", "python", "sql"],
+  "skills_preferred": ["docker"],
+  "finnish": {"requirement": "required", "level": "fluent"},
+  "swedish": {"requirement": "not_mentioned", "level": "unspecified"},
+  "english": {"requirement": "required", "level": "good"},
+  "experience_years_min": 2,
+  "city": "Tampere",
+  "work_mode": "onsite",
+  "deadline": "2026-12-10",
+  "notes": "'Sujuvaa suomen kielen taitoa' = fluent. 'Englannin kielen taito työskentelyyn riittää' = đủ để làm việc, ghi good. 'Pääosin toimistolla' = onsite. Hakuaika 10.12.2026 = ngày 10 tháng 12."
+}

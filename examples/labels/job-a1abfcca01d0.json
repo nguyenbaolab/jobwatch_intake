@@ -1,0 +1,15 @@
+{
+  "job_id": "job-a1abfcca01d0",
+  "labeler": "vi-du",
+  "labeled_at": "2026-11-22",
+  "skills_required": ["python", "sql", "airflow"],
+  "skills_preferred": ["azure"],
+  "finnish": {"requirement": "preferred", "level": "unspecified"},
+  "swedish": {"requirement": "not_mentioned", "level": "unspecified"},
+  "english": {"requirement": "required", "level": "good"},
+  "experience_years_min": 1,
+  "city": "Helsinki",
+  "work_mode": "hybrid",
+  "deadline": "2026-12-15",
+  "notes": "Tiếng Phần Lan: 'not required, but useful' nên là preferred. Airflow nằm ở câu 'work with ... daily' nên tính là required. 'Basic understanding of cloud services' quá chung, không ghi thành kỹ năng."
+}

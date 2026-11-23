@@ -1,0 +1,24 @@
+# Tin giả, chỉ dùng để thử script (domain example.invalid không tồn tại)
+source: example-board
+url: https://example.invalid/jobs/1001
+language: en
+title: Junior Data Engineer
+company: Example Analytics Oy
+location: Helsinki
+published_at: 2026-11-18
+deadline: 2026-12-15
+---
+Junior Data Engineer, Example Analytics Oy, Helsinki (hybrid)
+
+We build data pipelines for retail customers in the Nordics. You will join a team of five and work with Python, SQL and Airflow on a daily basis.
+
+What we expect
+- Python and SQL, at least 1 year of experience from work or serious projects
+- Basic understanding of cloud services; Azure is a plus
+- Good written and spoken English. Finnish is not required, but it is useful in customer meetings
+
+What we offer
+- Hybrid work, two office days per week in Helsinki
+- Mentoring from a senior engineer
+
+Apply by 15 December 2026 through our careers page.

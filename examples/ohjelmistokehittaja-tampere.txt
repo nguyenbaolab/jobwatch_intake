@@ -1,0 +1,21 @@
+# Tin giả, chỉ dùng để thử script (domain example.invalid không tồn tại)
+source: example-board
+url: https://example.invalid/jobs/1002
+language: fi
+title: Ohjelmistokehittäjä, backend
+company: Esimerkki Software Oy
+location: Tampere
+published_at: 2026-11-16
+deadline: 2026-12-10
+---
+Ohjelmistokehittäjä, backend – Esimerkki Software Oy, Tampere
+
+Etsimme ohjelmistokehittäjää backend-tiimiimme Tampereelle. Työskentelet Kotlinilla ja Pythonilla, ja kehität rajapintoja asiakkaidemme käyttöön.
+
+Odotamme sinulta
+- Kokemusta backend-kehityksestä vähintään 2 vuotta
+- Hyvää SQL-osaamista, Docker on eduksi
+- Sujuvaa suomen kielen taitoa, koska tiimin työkieli on suomi
+- Englannin kielen taito työskentelyyn riittää
+
+Työ tehdään pääosin toimistolla Tampereella. Hakuaika päättyy 10.12.2026.
