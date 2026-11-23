@@ -1,6 +1,6 @@
 {
   "job_id": "job-f6c3dde722d5",
-  "labeler": "vi-du",
+  "labeler": "example",
   "labeled_at": "2026-11-22",
   "skills_required": ["kotlin", "python", "sql"],
   "skills_preferred": ["docker"],
@@ -11,5 +11,5 @@
   "city": "Tampere",
   "work_mode": "onsite",
   "deadline": "2026-12-10",
-  "notes": "'Sujuvaa suomen kielen taitoa' = fluent. 'Englannin kielen taito työskentelyyn riittää' = đủ để làm việc, ghi good. 'Pääosin toimistolla' = onsite. Hakuaika 10.12.2026 = ngày 10 tháng 12."
+  "notes": "'Fluent Finnish' is required and the level is fluent. 'English is enough to do the job' is enough to work, so the level is good. 'Mostly at the office' is onsite. The deadline 10 December 2026 is 2026-12-10."
 }

@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Quét import bằng ast để giữ luật phụ thuộc giữa các lớp.
-Phụ thuộc: thư viện chuẩn.
+"""Layer: test.
+Role: Scan imports with ast so the dependency rule between layers holds.
+Depends on: the standard library.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def _imported(path: Path) -> list[str]:
             found.append(node.module)
         elif isinstance(node, ast.ImportFrom) and node.level:
             if package is None:
-                raise AssertionError(f"{path} dùng import tương đối ngoài src")
+                raise AssertionError(f"{path} uses a relative import outside src")
             keep = package[: len(package) - (node.level - 1)]
             if node.module:
                 found.append(".".join((*keep, node.module)))

@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Kiểm tra ghi JSON nguyên tử và giữ chữ ngoài ASCII.
-Phụ thuộc: adapter ra và domain.
+"""Layer: test.
+Role: Check the atomic JSON write and that non-ASCII letters are kept.
+Depends on: the outbound adapter and domain.
 """
 
 import json
@@ -17,6 +17,7 @@ def test_save_keeps_finnish_letters_and_leaves_no_temp_file(tmp_path: Path):
         source="board",
         url="https://example.invalid/jobs/1",
         language=Language.fi,
+        # Intentional non-ASCII test data: Finnish letters must survive ensure_ascii=False.
         title="Ohjelmistokehittäjä",
         company="Oy",
         location="Tampere",

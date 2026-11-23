@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Kiểm tra DTO từ chối trường lạ và ngày sai.
-Phụ thuộc: adapter vào và domain.
+"""Layer: test.
+Role: Check that the DTOs reject an unknown field and a bad date.
+Depends on: the inbound adapter and domain.
 """
 
 from datetime import date
@@ -29,7 +29,7 @@ def test_unknown_label_field_is_rejected():
         GoldLabelFileDTO.model_validate(
             {
                 "job_id": "job-a1abfcca01d0",
-                "labeler": "vi-du",
+                "labeler": "example",
                 "labeled_at": "2026-11-22",
                 "salary": 3000,
             }
@@ -41,7 +41,7 @@ def test_typo_inside_language_block_is_rejected():
         GoldLabelFileDTO.model_validate(
             {
                 "job_id": "job-a1abfcca01d0",
-                "labeler": "vi-du",
+                "labeler": "example",
                 "labeled_at": "2026-11-22",
                 "finnish": {"requirement": "required", "levle": "fluent"},
             }

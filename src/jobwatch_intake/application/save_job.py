@@ -1,6 +1,6 @@
-"""Lớp: application.
-Vai trò: Use case lưu một tin tuyển dụng đúng một lần.
-Phụ thuộc: thư viện chuẩn, domain và các cổng.
+"""Layer: application.
+Role: Use case that saves one job posting a single time.
+Depends on: the standard library, domain, and the ports.
 """
 
 from __future__ import annotations
@@ -56,10 +56,10 @@ class SaveJob:
             text=command.text,
             captured_at=self._clock.now(),
         )
-        log.debug("hợp lệ: id=%s language=%s", job.id, job.language.value)
+        log.debug("valid: id=%s language=%s", job.id, job.language.value)
         if not command.force and self._repository.exists(job.id):
             path = self._repository.locate(job.id)
-            log.debug("đã có %s, bỏ qua", path)
+            log.debug("already exists %s, skipped", path)
             return SaveJobResult(job_id=job.id, status="exists", path=path)
         path = self._repository.save(job)
         return SaveJobResult(job_id=job.id, status="saved", path=path)

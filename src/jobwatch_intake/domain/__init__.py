@@ -1,4 +1,4 @@
-"""Lớp: domain.
-Vai trò: Gói các mô hình nghiệp vụ.
-Phụ thuộc: không.
+"""Layer: domain.
+Role: Package for the business models.
+Depends on: nothing.
 """

@@ -1,4 +1,4 @@
-"""Lớp: package.
-Vai trò: Gói thư viện nhập tin tuyển dụng.
-Phụ thuộc: không.
+"""Layer: package.
+Role: Library package for taking in job postings.
+Depends on: nothing.
 """

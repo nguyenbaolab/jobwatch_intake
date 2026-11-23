@@ -1,6 +1,6 @@
-"""Lớp: domain.
-Vai trò: Nhãn vàng và các luật bất biến của nó.
-Phụ thuộc: thư viện chuẩn và domain.job_posting.
+"""Layer: domain.
+Role: A gold label and the rules it must satisfy.
+Depends on: the standard library and domain.job_posting.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ class WorkMode(str, Enum):
 
 
 class InvalidGoldLabel(Exception):
-    """Nhãn vi phạm luật nghiệp vụ. errors là danh sách (trường, lý do)."""
+    """The label breaks a business rule. errors is a list of (field, reason)."""
 
     def __init__(self, errors: list[tuple[str, str]]):
         self.errors = errors
@@ -53,9 +53,9 @@ def _clean_skills(
 ) -> tuple[str, ...]:
     cleaned = tuple(item.strip().lower() for item in skills)
     if any(not item for item in cleaned):
-        errors.append((field_name, "có kỹ năng rỗng"))
+        errors.append((field_name, "skill is empty"))
     if len(set(cleaned)) != len(cleaned):
-        errors.append((field_name, "kỹ năng bị lặp trong cùng một danh sách"))
+        errors.append((field_name, "skill is duplicated in the same list"))
     return cleaned
 
 
@@ -83,9 +83,9 @@ class GoldLabel:
         object.__setattr__(self, "skills_preferred", preferred)
 
         if not isinstance(self.job_id, str) or JOB_ID_PATTERN.fullmatch(self.job_id) is None:
-            errors.append(("job_id", "job_id phải khớp ^job-[0-9a-f]{12}$"))
+            errors.append(("job_id", "job_id must match ^job-[0-9a-f]{12}$"))
         if not isinstance(self.labeler, str) or len(self.labeler) < 2:
-            errors.append(("labeler", "labeler phải có ít nhất 2 ký tự"))
+            errors.append(("labeler", "labeler must be at least 2 characters"))
 
         for name in ("finnish", "swedish", "english"):
             need: LanguageNeed = getattr(self, name)
@@ -93,18 +93,18 @@ class GoldLabel:
                 need.requirement == Requirement.not_mentioned
                 and need.level != Level.unspecified
             ):
-                errors.append((name, "không nhắc ngôn ngữ này thì level phải là unspecified"))
+                errors.append((name, "level must be unspecified when the language is not mentioned"))
 
         years = self.experience_years_min
         if years is not None and (
             isinstance(years, bool) or not isinstance(years, int) or years < 0 or years > 30
         ):
-            errors.append(("experience_years_min", "experience_years_min phải từ 0 đến 30"))
+            errors.append(("experience_years_min", "experience_years_min must be from 0 to 30"))
 
         overlap = set(required) & set(preferred)
         if overlap:
             errors.append(
-                ("(cả tin)", f"kỹ năng nằm ở cả required và preferred: {sorted(overlap)}")
+                ("(whole posting)", f"skill is in both required and preferred: {sorted(overlap)}")
             )
         if errors:
             raise InvalidGoldLabel(errors)

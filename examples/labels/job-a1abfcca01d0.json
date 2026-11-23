@@ -1,6 +1,6 @@
 {
   "job_id": "job-a1abfcca01d0",
-  "labeler": "vi-du",
+  "labeler": "example",
   "labeled_at": "2026-11-22",
   "skills_required": ["python", "sql", "airflow"],
   "skills_preferred": ["azure"],
@@ -11,5 +11,5 @@
   "city": "Helsinki",
   "work_mode": "hybrid",
   "deadline": "2026-12-15",
-  "notes": "Tiếng Phần Lan: 'not required, but useful' nên là preferred. Airflow nằm ở câu 'work with ... daily' nên tính là required. 'Basic understanding of cloud services' quá chung, không ghi thành kỹ năng."
+  "notes": "Finnish: 'not required, but useful' is preferred. Airflow is in the sentence 'work with ... daily', so it counts as required. 'Basic understanding of cloud services' is too broad to record as a skill."
 }

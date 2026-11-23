@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Kiểm tra luật của JobPosting mà không đụng file.
-Phụ thuộc: domain.
+"""Layer: test.
+Role: Check JobPosting rules without touching the filesystem.
+Depends on: domain.
 """
 
 from datetime import date, datetime, timezone
@@ -66,10 +66,10 @@ def test_reports_every_length_url_and_deadline_error():
         "title",
         "company",
         "text",
-        "(cả tin)",
+        "(whole posting)",
     ]
-    assert ("url", "url phải bắt đầu bằng http:// hoặc https://") in caught.value.errors
-    assert ("(cả tin)", "deadline không được trước published_at") in caught.value.errors
+    assert ("url", "url must start with http:// or https://") in caught.value.errors
+    assert ("(whole posting)", "deadline must not be before published_at") in caught.value.errors
 
 
 def test_bad_id_is_rejected():

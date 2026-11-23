@@ -1,6 +1,6 @@
-"""Lớp: adapters.inbound.
-Vai trò: Đọc file nháp thành dict các trường và nội dung tin.
-Phụ thuộc: thư viện chuẩn.
+"""Layer: adapters.inbound.
+Role: Read a draft file into a dict of fields plus the posting text.
+Depends on: the standard library.
 """
 
 from __future__ import annotations
@@ -14,16 +14,16 @@ SEPARATOR = "---"
 
 
 class DraftError(Exception):
-    """File nháp sai cấu trúc (thiếu dòng ---, dòng không có dấu :)."""
+    """The draft has the wrong shape (missing ---, or a line with no ':')."""
 
 
 def read_draft(path: Path) -> dict:
-    """Tách file nháp thành dict các trường + nội dung tin."""
+    """Split a draft file into a dict of header fields plus the posting text."""
     raw = path.read_text(encoding="utf-8")
     lines = raw.replace("\r\n", "\n").split("\n")
 
     if SEPARATOR not in [line.strip() for line in lines]:
-        raise DraftError(f"thiếu dòng '{SEPARATOR}' ngăn phần đầu và nội dung tin")
+        raise DraftError(f"missing '{SEPARATOR}' line between the header and the posting text")
     sep_index = [line.strip() for line in lines].index(SEPARATOR)
 
     draft: dict = {}
@@ -31,13 +31,13 @@ def read_draft(path: Path) -> dict:
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         if ":" not in line:
-            raise DraftError(f"dòng {number} không có dấu ':' → {line!r}")
+            raise DraftError(f"line {number} has no ':' → {line!r}")
         key, value = line.split(":", 1)
         draft[key.strip()] = value.strip() or None
 
     draft["text"] = "\n".join(lines[sep_index + 1 :])
     log.debug(
-        "đọc xong %s: %d trường đầu, %d ký tự nội dung",
+        "read %s: %d header fields, %d characters of text",
         path,
         len(draft) - 1,
         len(draft["text"]),

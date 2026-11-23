@@ -6,7 +6,7 @@
       "type": "string"
     },
     "source": {
-      "description": "Tên nguồn, vd duunitori, company-site",
+      "description": "Source name, e.g. duunitori, company-site",
       "title": "Source",
       "type": "string"
     },

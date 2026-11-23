@@ -1,6 +1,6 @@
-"""Lớp: adapters.inbound.
-Vai trò: Đọc đối số dòng lệnh, in thông báo và trả mã thoát.
-Phụ thuộc: thư viện chuẩn, application, domain và adapter vào.
+"""Layer: adapters.inbound.
+Role: Read command-line arguments, print messages, and return an exit code.
+Depends on: the standard library, application, domain, and the inbound adapters.
 """
 
 from __future__ import annotations
@@ -22,11 +22,11 @@ log = logging.getLogger("save_job")
 
 
 def run(argv: list[str] | None, make_use_case: Callable[[Path], SaveJob]) -> int:
-    parser = argparse.ArgumentParser(description="Lưu một tin tuyển dụng từ file nháp.")
-    parser.add_argument("draft", type=Path, help="đường dẫn file nháp")
-    parser.add_argument("--out", type=Path, default=Path("data/jobs"), help="thư mục ghi JSON")
-    parser.add_argument("--force", action="store_true", help="ghi đè nếu tin đã được lưu")
-    parser.add_argument("--verbose", action="store_true", help="in từng bước để trace")
+    parser = argparse.ArgumentParser(description="Save one job posting from a draft file.")
+    parser.add_argument("draft", type=Path, help="path to the draft file")
+    parser.add_argument("--out", type=Path, default=Path("data/jobs"), help="directory for the JSON files")
+    parser.add_argument("--force", action="store_true", help="overwrite a posting that is already saved")
+    parser.add_argument("--verbose", action="store_true", help="log each step for tracing")
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -38,7 +38,7 @@ def run(argv: list[str] | None, make_use_case: Callable[[Path], SaveJob]) -> int
     try:
         draft = read_draft(args.draft)
     except (OSError, UnicodeDecodeError, DraftError) as exc:
-        print(f"Không đọc được file nháp: {exc}", file=sys.stderr)
+        print(f"Could not read the draft file: {exc}", file=sys.stderr)
         return 2
 
     try:
@@ -54,21 +54,21 @@ def run(argv: list[str] | None, make_use_case: Callable[[Path], SaveJob]) -> int
         return 1
 
     if result.status == "exists":
-        print(f"Đã có sẵn, không ghi lại: {result.path}  (dùng --force để ghi đè)")
+        print(f"Already saved, not written again: {result.path}  (use --force to overwrite)")
     else:
-        print(f"Đã lưu: {result.path}")
+        print(f"Saved: {result.path}")
     return 0
 
 
 def _from_validation(exc: ValidationError) -> list[tuple[str, str]]:
     rows: list[tuple[str, str]] = []
     for err in exc.errors():
-        field = ".".join(str(part) for part in err["loc"]) or "(cả tin)"
+        field = ".".join(str(part) for part in err["loc"]) or "(whole posting)"
         rows.append((field, str(err["msg"])))
     return rows
 
 
 def _print_errors(errors: list[tuple[str, str]]) -> None:
-    print(f"Tin không hợp lệ ({len(errors)} lỗi):", file=sys.stderr)
+    print(f"Invalid job posting ({len(errors)} errors):", file=sys.stderr)
     for field, message in errors:
         print(f"  - {field}: {message}", file=sys.stderr)

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jobwatch-intake"
 version = "0.1.0"
-description = "Nhập tin tuyển dụng thô cho Jobwatch."
+description = "Take in a raw job posting for Jobwatch."
 requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2",

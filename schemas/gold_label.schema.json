@@ -2,7 +2,7 @@
   "$defs": {
     "LanguageNeedDTO": {
       "additionalProperties": false,
-      "description": "Yêu cầu một ngôn ngữ. Đây là trường quan trọng nhất của bộ nhãn.",
+      "description": "Requirement for one language. This is the most important field in a label.",
       "properties": {
         "requirement": {
           "$ref": "#/$defs/Requirement",

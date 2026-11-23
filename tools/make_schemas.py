@@ -1,6 +1,6 @@
-"""Lớp: công cụ.
-Vai trò: Sinh JSON Schema từ DTO của file tin đã lưu và file nhãn.
-Phụ thuộc: thư viện chuẩn và các DTO.
+"""Layer: tool.
+Role: Write JSON Schema from the DTOs for a saved posting and a label file.
+Depends on: the standard library and the DTOs.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def main() -> None:
             encoding="utf-8",
             newline="\n",
         )
-        print("đã ghi", destination)
+        print("wrote", destination)
 
 
 if __name__ == "__main__":

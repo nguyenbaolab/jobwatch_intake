@@ -1,4 +1,4 @@
-# Tin giả, chỉ dùng để thử script (domain example.invalid không tồn tại)
+# Fictional posting, only for trying the script (the example.invalid domain does not exist)
 source: example-board
 url: https://example.invalid/jobs/1001
 language: en

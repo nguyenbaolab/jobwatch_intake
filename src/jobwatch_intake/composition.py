@@ -1,6 +1,6 @@
-"""Lớp: composition.
-Vai trò: Nơi duy nhất ráp adapter vào use case.
-Phụ thuộc: application và adapters.outbound.
+"""Layer: composition.
+Role: The only place that wires adapters into the use case.
+Depends on: application and adapters.outbound.
 """
 
 from __future__ import annotations

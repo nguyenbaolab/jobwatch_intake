@@ -1,6 +1,6 @@
-"""Lớp: adapters.outbound.
-Vai trò: Định dạng JSON của một tin đã lưu.
-Phụ thuộc: pydantic và domain.
+"""Layer: adapters.outbound.
+Role: JSON shape of one saved posting.
+Depends on: pydantic and domain.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ class StoredJobDTO(BaseModel):
     model_config = ConfigDict(extra="forbid", title="JobPosting")
 
     id: str
-    source: str = Field(description="Tên nguồn, vd duunitori, company-site")
+    source: str = Field(description="Source name, e.g. duunitori, company-site")
     url: Optional[str] = None
     language: Literal["fi", "en", "sv"]
     title: str

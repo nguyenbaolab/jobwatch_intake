@@ -1,4 +1,4 @@
-"""Lớp: adapters.outbound.
-Vai trò: Gói ghi file JSON và đồng hồ hệ thống.
-Phụ thuộc: không.
+"""Layer: adapters.outbound.
+Role: Package that writes JSON files and provides the system clock.
+Depends on: nothing.
 """

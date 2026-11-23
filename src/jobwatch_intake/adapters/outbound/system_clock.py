@@ -1,6 +1,6 @@
-"""Lớp: adapters.outbound.
-Vai trò: Đồng hồ hệ thống, UTC, làm tròn tới giây.
-Phụ thuộc: thư viện chuẩn.
+"""Layer: adapters.outbound.
+Role: System clock, UTC, rounded to the second.
+Depends on: the standard library.
 """
 
 from __future__ import annotations

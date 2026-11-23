@@ -1,4 +1,4 @@
-"""Lớp: adapters.
-Vai trò: Gói nối use case với file và dòng lệnh.
-Phụ thuộc: không.
+"""Layer: adapters.
+Role: Package that connects the use case to files and the command line.
+Depends on: nothing.
 """

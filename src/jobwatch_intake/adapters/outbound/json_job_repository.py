@@ -1,6 +1,6 @@
-"""Lớp: adapters.outbound.
-Vai trò: Ghi mỗi tin thành một file JSON, theo cách nguyên tử.
-Phụ thuộc: thư viện chuẩn, domain và DTO file đã lưu.
+"""Layer: adapters.outbound.
+Role: Write each posting to one JSON file, atomically.
+Depends on: the standard library, domain, and the stored-job DTO.
 """
 
 from __future__ import annotations
@@ -43,5 +43,5 @@ class JsonJobRepository:
         temporary = target.with_suffix(".json.tmp")
         temporary.write_text(payload, encoding="utf-8", newline="\n")
         os.replace(temporary, target)
-        log.debug("đã ghi %s (%d byte)", target, len(payload.encode("utf-8")))
+        log.debug("wrote %s (%d bytes)", target, len(payload.encode("utf-8")))
         return str(target)

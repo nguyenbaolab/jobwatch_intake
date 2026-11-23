@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Kiểm tra đọc file nháp sai cấu trúc hoặc sai bảng mã.
-Phụ thuộc: adapter vào.
+"""Layer: test.
+Role: Check reading a draft that has the wrong shape or the wrong encoding.
+Depends on: the inbound adapter.
 """
 
 from pathlib import Path
@@ -9,7 +9,7 @@ import pytest
 
 from jobwatch_intake.adapters.inbound.draft_reader import DraftError, read_draft
 
-BODY = "nội dung " * 20
+BODY = "content " * 20
 
 
 def test_missing_separator(tmp_path: Path):
@@ -35,7 +35,7 @@ def test_not_utf8(tmp_path: Path):
 
 def test_comment_is_skipped_and_later_separator_stays_in_text(tmp_path: Path):
     path = tmp_path / "d.txt"
-    path.write_text("source: board\n# ghi chú\n\n---\ndòng\n---\nthêm\n", encoding="utf-8")
+    path.write_text("source: board\n# comment\n\n---\nline\n---\nmore\n", encoding="utf-8")
     draft = read_draft(path)
     assert draft["source"] == "board"
-    assert draft["text"].startswith("dòng\n---\nthêm")
+    assert draft["text"].startswith("line\n---\nmore")

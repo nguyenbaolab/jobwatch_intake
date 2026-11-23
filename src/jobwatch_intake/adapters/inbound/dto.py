@@ -1,6 +1,6 @@
-"""Lớp: adapters.inbound.
-Vai trò: Kiểm tra dạng file nháp và file nhãn, rồi đổi thành đối tượng thường.
-Phụ thuộc: pydantic, domain và application.
+"""Layer: adapters.inbound.
+Role: Check the shape of a draft and a label file, then turn them into plain objects.
+Depends on: pydantic, domain, and application.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ class JobDraftDTO(BaseModel):
 
 
 class LanguageNeedDTO(BaseModel):
-    """Yêu cầu một ngôn ngữ. Đây là trường quan trọng nhất của bộ nhãn."""
+    """Requirement for one language. This is the most important field in a label."""
 
     model_config = ConfigDict(extra="forbid")
 

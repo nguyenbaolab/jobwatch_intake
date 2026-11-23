@@ -1,6 +1,6 @@
-"""Lớp: domain.
-Vai trò: Tin tuyển dụng và các luật bất biến của nó.
-Phụ thuộc: thư viện chuẩn.
+"""Layer: domain.
+Role: A job posting and the rules it must satisfy.
+Depends on: the standard library.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ class Language(str, Enum):
 
 
 class InvalidJobPosting(Exception):
-    """Tin vi phạm luật nghiệp vụ. errors là danh sách (trường, lý do)."""
+    """The posting breaks a business rule. errors is a list of (field, reason)."""
 
     def __init__(self, errors: list[tuple[str, str]]):
         self.errors = errors
@@ -31,9 +31,9 @@ class InvalidJobPosting(Exception):
 
 
 def make_job_id(url: Optional[str], company: str, title: str, text: str) -> str:
-    """Id ổn định: cùng url (hoặc cùng công ty + tên việc + đầu nội dung) thì cùng id.
+    """Stable id: the same url (or the same company, title, and start of the text) gives the same id.
 
-    Nhờ vậy chạy script hai lần trên cùng một tin không tạo ra hai bản.
+    Running the command twice on one posting therefore does not create two copies.
     """
     if url:
         key = url.strip().split("#")[0].rstrip("/").lower()
@@ -49,7 +49,7 @@ def _as_stripped(value: object) -> object:
 
 
 def _is_calendar_date(value: object) -> bool:
-    # datetime là lớp con của date; luật hạn nộp chỉ so ngày lịch.
+    # datetime is a subclass of date; the deadline rule compares calendar dates only.
     return isinstance(value, date) and not isinstance(value, datetime)
 
 
@@ -81,26 +81,26 @@ class JobPosting:
 
         errors: list[tuple[str, str]] = []
         if not isinstance(self.id, str) or JOB_ID_PATTERN.fullmatch(self.id) is None:
-            errors.append(("id", "id phải khớp ^job-[0-9a-f]{12}$"))
+            errors.append(("id", "id must match ^job-[0-9a-f]{12}$"))
         if not isinstance(source, str) or len(source) < 2:
-            errors.append(("source", "source phải có ít nhất 2 ký tự"))
+            errors.append(("source", "source must be at least 2 characters"))
         if self.url is not None and not (
             isinstance(self.url, str) and self.url.startswith(("http://", "https://"))
         ):
-            errors.append(("url", "url phải bắt đầu bằng http:// hoặc https://"))
+            errors.append(("url", "url must start with http:// or https://"))
         if not isinstance(self.language, Language):
-            errors.append(("language", "language phải là fi, en hoặc sv"))
+            errors.append(("language", "language must be fi, en, or sv"))
         if not isinstance(title, str) or len(title) < 3:
-            errors.append(("title", "title phải có ít nhất 3 ký tự"))
+            errors.append(("title", "title must be at least 3 characters"))
         if not isinstance(company, str) or len(company) < 2:
-            errors.append(("company", "company phải có ít nhất 2 ký tự"))
+            errors.append(("company", "company must be at least 2 characters"))
         if not isinstance(text, str) or len(text) < MIN_TEXT_CHARS:
-            errors.append(("text", "text phải có ít nhất 150 ký tự"))
+            errors.append(("text", "text must be at least 150 characters"))
         if (
             _is_calendar_date(self.published_at)
             and _is_calendar_date(self.deadline)
             and self.deadline < self.published_at
         ):
-            errors.append(("(cả tin)", "deadline không được trước published_at"))
+            errors.append(("(whole posting)", "deadline must not be before published_at"))
         if errors:
             raise InvalidJobPosting(errors)

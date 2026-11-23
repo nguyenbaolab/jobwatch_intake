@@ -1,6 +1,6 @@
-"""Lớp: composition.
-Vai trò: Điểm vào khi chạy python -m jobwatch_intake.
-Phụ thuộc: adapter vào và composition.
+"""Layer: composition.
+Role: Entry point for python -m jobwatch_intake.
+Depends on: the inbound adapter and composition.
 """
 
 from __future__ import annotations

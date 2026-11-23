@@ -1,6 +1,6 @@
-"""Lớp: application.
-Vai trò: Cổng để use case nói chuyện với kho tin và đồng hồ.
-Phụ thuộc: thư viện chuẩn và domain.
+"""Layer: application.
+Role: Ports the use case uses to reach a job store and a clock.
+Depends on: the standard library and domain.
 """
 
 from __future__ import annotations
@@ -13,15 +13,15 @@ from jobwatch_intake.domain.job_posting import JobPosting
 
 class JobRepository(Protocol):
     def exists(self, job_id: str) -> bool:
-        """Tin này đã có trong kho hay chưa."""
+        """Whether this posting is already in the store."""
 
     def locate(self, job_id: str) -> str:
-        """Đường dẫn sẽ in ra khi lưu hoặc khi tin đã có sẵn."""
+        """Path printed when the posting is saved or already present."""
 
     def save(self, job: JobPosting) -> str:
-        """Ghi tin và trả về đường dẫn đã ghi."""
+        """Write the posting and return the path that was written."""
 
 
 class Clock(Protocol):
     def now(self) -> datetime:
-        """Thời điểm hiện tại. Bản hệ thống trả về UTC, làm tròn tới giây."""
+        """The current time. The system clock returns UTC, rounded to the second."""

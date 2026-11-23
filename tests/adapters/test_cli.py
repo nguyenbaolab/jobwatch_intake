@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Kiểm tra mã thoát của dòng lệnh qua composition thật.
-Phụ thuộc: thư viện chuẩn, adapter vào và domain.
+"""Layer: test.
+Role: Check command-line exit codes through the real composition root.
+Depends on: the standard library, the inbound adapter, and domain.
 """
 
 import json
@@ -61,10 +61,11 @@ def test_valid_english_posting_is_saved(tmp_path: Path):
     assert data["company"] == "Example Analytics Oy"
     assert data["deadline"] == "2026-12-15"
     assert data["id"] == files[0].stem
-    assert "Đã lưu" in stdout
+    assert "Saved" in stdout
 
 
 def test_finnish_letters_round_trip(tmp_path: Path):
+    # Intentional non-ASCII test data: Finnish letters must survive ensure_ascii=False.
     body = "Ohjelmistokehittäjä backend-tiimiin Tampereelle. Työskentelet Kotlinilla ja Pythonilla, " * 2
     code, out, _, stderr = run(
         tmp_path,
@@ -86,7 +87,7 @@ def test_missing_company_exit_1(tmp_path: Path):
     code, out, _, stderr = run(tmp_path, draft(tmp_path, company=None))
     assert code == 1
     assert "company" in stderr
-    assert "Tin không hợp lệ" in stderr
+    assert "Invalid job posting" in stderr
     assert not out.exists() or not list(out.glob("*.json"))
 
 
@@ -95,7 +96,7 @@ def test_deadline_before_published_exit_1(tmp_path: Path):
         tmp_path, draft(tmp_path, published_at="2026-12-20", deadline="2026-12-01")
     )
     assert code == 1
-    assert "(cả tin)" in stderr
+    assert "(whole posting)" in stderr
 
 
 def test_unknown_header_key_exit_1(tmp_path: Path):
@@ -120,7 +121,7 @@ def test_missing_separator_exit_2(tmp_path: Path):
     path.write_text("source: x\ntitle: y\n" + BODY, encoding="utf-8")
     code, _, _, stderr = run(tmp_path, path)
     assert code == 2
-    assert "Không đọc được file nháp" in stderr
+    assert "Could not read the draft file" in stderr
 
 
 def test_header_line_without_colon_exit_2(tmp_path: Path):
@@ -128,13 +129,13 @@ def test_header_line_without_colon_exit_2(tmp_path: Path):
     path.write_text("source x\n---\n" + BODY, encoding="utf-8")
     code, _, _, stderr = run(tmp_path, path)
     assert code == 2
-    assert "Không đọc được file nháp" in stderr
+    assert "Could not read the draft file" in stderr
 
 
 def test_missing_file_exit_2(tmp_path: Path):
-    code, _, _, stderr = run(tmp_path, tmp_path / "khong-co.txt")
+    code, _, _, stderr = run(tmp_path, tmp_path / "missing.txt")
     assert code == 2
-    assert "Không đọc được file nháp" in stderr
+    assert "Could not read the draft file" in stderr
 
 
 def test_not_utf8_exit_2(tmp_path: Path):
@@ -142,7 +143,7 @@ def test_not_utf8_exit_2(tmp_path: Path):
     path.write_bytes("source: x\n---\nÄÖ".encode("latin-1"))
     code, _, _, stderr = run(tmp_path, path)
     assert code == 2
-    assert "Không đọc được file nháp" in stderr
+    assert "Could not read the draft file" in stderr
 
 
 def test_second_run_is_idempotent(tmp_path: Path):
@@ -154,7 +155,7 @@ def test_second_run_is_idempotent(tmp_path: Path):
     assert code2 == 0
     assert len(list(out.glob("*.json"))) == 1
     assert next(out.glob("*.json")).read_text(encoding="utf-8") == first
-    assert "Đã có sẵn" in stdout
+    assert "Already saved" in stdout
 
 
 def test_same_url_new_text_keeps_id_and_needs_force(tmp_path: Path):
@@ -168,7 +169,7 @@ def test_same_url_new_text_keeps_id_and_needs_force(tmp_path: Path):
     assert "extended" not in only[0].read_text(encoding="utf-8")
     code, _, stdout, stderr = run(tmp_path, changed, "--force")
     assert code == 0, stderr
-    assert "Đã lưu" in stdout
+    assert "Saved" in stdout
     assert "extended" in only[0].read_text(encoding="utf-8")
 
 
@@ -181,9 +182,9 @@ def test_no_temp_file_left_behind(tmp_path: Path):
 def test_verbose_logs_the_three_steps(tmp_path: Path):
     code, _, _, stderr = run(tmp_path, draft(tmp_path), "--verbose")
     assert code == 0
-    assert "đọc xong" in stderr
-    assert "hợp lệ" in stderr
-    assert "đã ghi" in stderr
+    assert "read " in stderr
+    assert "valid:" in stderr
+    assert "wrote " in stderr
 
 
 def test_example_labels_validate_and_match_example_drafts(tmp_path: Path):
@@ -198,7 +199,7 @@ def test_example_labels_validate_and_match_example_drafts(tmp_path: Path):
         job = json.loads(next(out.glob("*.json")).read_text(encoding="utf-8"))
         assert job["id"] == expected[draft_file.name]
         label_file = ROOT / "examples" / "labels" / f"{job['id']}.json"
-        assert label_file.exists(), f"thiếu nhãn cho {draft_file.name} ({job['id']})"
+        assert label_file.exists(), f"missing label for {draft_file.name} ({job['id']})"
         gold = GoldLabelFileDTO.model_validate_json(
             label_file.read_text(encoding="utf-8")
         ).to_domain()

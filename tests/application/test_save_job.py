@@ -1,6 +1,6 @@
-"""Lớp: test.
-Vai trò: Kiểm tra use case SaveJob với kho trong bộ nhớ và đồng hồ cố định.
-Phụ thuộc: application và domain.
+"""Layer: test.
+Role: Check the SaveJob use case with an in-memory store and a fixed clock.
+Depends on: application and domain.
 """
 
 from datetime import date, datetime, timezone
@@ -68,7 +68,7 @@ def test_second_save_reports_exists_and_keeps_the_first_copy():
     first = SaveJob(repository, FixedClock(WHEN)).execute(_command())
     later = datetime(2026, 12, 1, tzinfo=timezone.utc)
     second = SaveJob(repository, FixedClock(later)).execute(
-        _command(title="Tên khác", text=BODY + " more")
+        _command(title="Other title", text=BODY + " more")
     )
     assert (first.status, second.status) == ("saved", "exists")
     assert second.job_id == first.job_id

@@ -1,4 +1,4 @@
-"""Lớp: adapters.inbound.
-Vai trò: Gói đọc file nháp và dòng lệnh.
-Phụ thuộc: không.
+"""Layer: adapters.inbound.
+Role: Package that reads draft files and the command line.
+Depends on: nothing.
 """
