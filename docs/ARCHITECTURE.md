@@ -1,8 +1,8 @@
-# Kiến trúc
+# Architecture
 
-Ba lớp. Mũi tên là chiều phụ thuộc: lớp ngoài biết lớp trong, lớp trong không biết lớp ngoài. `composition.py` là chỗ duy nhất biết cả use case lẫn adapter cụ thể. `__main__.py` là module duy nhất được import composition.
+Three layers. An arrow is a dependency: an outer layer knows an inner layer, and an inner layer does not know an outer layer. `composition.py` is the only place that knows both the use case and a concrete adapter. `__main__.py` is the only module allowed to import composition.
 
-## Các lớp
+## Layers
 
 ```mermaid
 flowchart TB
@@ -17,13 +17,13 @@ flowchart TB
   application --> domain
 ```
 
-Adapter ra không import adapter vào, và ngược lại. Domain chỉ dùng thư viện chuẩn. Application không dùng Pydantic và không import adapter.
+Outbound does not import inbound, and inbound does not import outbound. Domain uses only the standard library. Application does not use Pydantic and does not import an adapter.
 
-## Luồng lưu một tin
+## Saving one posting
 
 ```mermaid
 sequenceDiagram
-  actor User as Người dùng
+  actor User as User
   participant CLI as cli.run
   participant Reader as draft_reader
   participant DTO as JobDraftDTO
@@ -32,81 +32,81 @@ sequenceDiagram
   participant Domain as JobPosting
   participant Repo as JobRepository
 
-  User->>CLI: python -m jobwatch_intake file --out thư mục
+  User->>CLI: python -m jobwatch_intake file --out directory
   CLI->>Reader: read_draft
-  alt không đọc được file
-    Reader-->>CLI: DraftError, OSError hoặc UnicodeDecodeError
-    CLI-->>User: stderr, mã thoát 2
-  else đọc được
+  alt unreadable draft
+    Reader-->>CLI: DraftError, OSError, or UnicodeDecodeError
+    CLI-->>User: stderr, exit 2
+  else draft read
     Reader-->>CLI: dict
     CLI->>DTO: model_validate
-    alt lỗi dạng
+    alt shape error
       DTO-->>CLI: ValidationError
-      CLI-->>User: đủ lỗi dạng, mã thoát 1
-    else dạng đúng
+      CLI-->>User: every shape error, exit 1
+    else shape ok
       CLI->>UC: execute(SaveJobCommand)
       UC->>Clock: now
-      UC->>Domain: tạo JobPosting
-      alt vi phạm luật nghiệp vụ
+      UC->>Domain: build JobPosting
+      alt business rule fails
         Domain-->>CLI: InvalidJobPosting
-        CLI-->>User: đủ lỗi nghiệp vụ, mã thoát 1
-      else đã có và không --force
-        UC->>Repo: exists rồi locate
+        CLI-->>User: every business error, exit 1
+      else already saved and no --force
+        UC->>Repo: exists then locate
         UC-->>CLI: exists
-        CLI-->>User: Đã có sẵn, mã thoát 0
-      else ghi mới hoặc --force
+        CLI-->>User: Already saved, exit 0
+      else new write or --force
         UC->>Repo: save
-        Repo-->>UC: đường dẫn
+        Repo-->>UC: path
         UC-->>CLI: saved
-        CLI-->>User: Đã lưu, mã thoát 0
+        CLI-->>User: Saved, exit 0
       end
     end
   end
 ```
 
-## Từng file
+## Each file
 
-| Đường dẫn | Lớp | Nhiệm vụ | Phụ thuộc vào | Ai dùng |
+| Path | Layer | One-line job | Depends on | Used by |
 |---|---|---|---|---|
-| `src/jobwatch_intake/__init__.py` | package | Đánh dấu gói Python | không | trình cài đặt |
-| `src/jobwatch_intake/__main__.py` | composition | Gọi CLI với hàm ráp sẵn | cli, composition | `python -m jobwatch_intake` |
-| `src/jobwatch_intake/composition.py` | composition | Tạo kho JSON và đồng hồ hệ thống, đưa vào SaveJob | application, adapters.outbound | `__main__.py` |
-| `src/jobwatch_intake/domain/__init__.py` | domain | Đánh dấu gói | không | |
-| `src/jobwatch_intake/domain/job_posting.py` | domain | JobPosting, Language, make_job_id, luật của tin | thư viện chuẩn | application, adapter, test |
-| `src/jobwatch_intake/domain/gold_label.py` | domain | GoldLabel, LanguageNeed, các enum, luật của nhãn | thư viện chuẩn, job_posting | DTO nhãn, test |
-| `src/jobwatch_intake/application/__init__.py` | application | Đánh dấu gói | không | |
-| `src/jobwatch_intake/application/ports.py` | application | JobRepository và Clock, kiểu Protocol | domain | SaveJob |
-| `src/jobwatch_intake/application/save_job.py` | application | Dựng tin, lưu một lần, báo saved hoặc exists | domain, ports | composition, cli |
-| `src/jobwatch_intake/adapters/__init__.py` | adapters | Đánh dấu gói | không | |
-| `src/jobwatch_intake/adapters/inbound/__init__.py` | adapters.inbound | Đánh dấu gói | không | |
-| `src/jobwatch_intake/adapters/inbound/draft_reader.py` | adapters.inbound | Đọc file nháp thành dict | thư viện chuẩn | cli |
-| `src/jobwatch_intake/adapters/inbound/dto.py` | adapters.inbound | JobDraftDTO và GoldLabelFileDTO | pydantic, domain, application | cli, make_schemas, test |
-| `src/jobwatch_intake/adapters/inbound/cli.py` | adapters.inbound | argparse, thông báo, mã thoát 0/1/2 | draft_reader, dto, application, domain | `__main__.py` |
-| `src/jobwatch_intake/adapters/outbound/__init__.py` | adapters.outbound | Đánh dấu gói | không | |
-| `src/jobwatch_intake/adapters/outbound/json_job_repository.py` | adapters.outbound | Ghi `data/jobs/<id>.json` qua file tạm rồi os.replace | domain, stored_job_dto | composition |
-| `src/jobwatch_intake/adapters/outbound/stored_job_dto.py` | adapters.outbound | Dạng JSON của tin đã lưu | pydantic, domain | kho JSON, make_schemas |
-| `src/jobwatch_intake/adapters/outbound/system_clock.py` | adapters.outbound | UTC, làm tròn tới giây | thư viện chuẩn | composition |
-| `tools/make_schemas.py` | công cụ | Sinh `schemas/*.schema.json` từ hai DTO | các DTO | người gán nhãn |
-| `tests/test_architecture.py` | test | Quét import, chặn phụ thuộc ngược | thư viện chuẩn | pytest |
-| `tests/domain/` | test | Luật tin và nhãn, không đụng file | domain | pytest |
-| `tests/application/` | test | SaveJob với kho giả và đồng hồ cố định | application, domain | pytest |
-| `tests/adapters/` | test | File nháp, file JSON, DTO, mã thoát | adapter, domain | pytest |
+| `src/jobwatch_intake/__init__.py` | package | Marks the Python package | nothing | the installer |
+| `src/jobwatch_intake/__main__.py` | composition | Calls the CLI with the wired use case | cli, composition | `python -m jobwatch_intake` |
+| `src/jobwatch_intake/composition.py` | composition | Builds the JSON store and the system clock, and passes them to SaveJob | application, adapters.outbound | `__main__.py` |
+| `src/jobwatch_intake/domain/__init__.py` | domain | Marks the package | nothing | |
+| `src/jobwatch_intake/domain/job_posting.py` | domain | JobPosting, Language, make_job_id, posting rules | standard library | application, adapters, tests |
+| `src/jobwatch_intake/domain/gold_label.py` | domain | GoldLabel, LanguageNeed, the enums, label rules | standard library, job_posting | label DTO, tests |
+| `src/jobwatch_intake/application/__init__.py` | application | Marks the package | nothing | |
+| `src/jobwatch_intake/application/ports.py` | application | JobRepository and Clock, as Protocols | domain | SaveJob |
+| `src/jobwatch_intake/application/save_job.py` | application | Builds a posting, saves it once, reports saved or exists | domain, ports | composition, cli |
+| `src/jobwatch_intake/adapters/__init__.py` | adapters | Marks the package | nothing | |
+| `src/jobwatch_intake/adapters/inbound/__init__.py` | adapters.inbound | Marks the package | nothing | |
+| `src/jobwatch_intake/adapters/inbound/draft_reader.py` | adapters.inbound | Reads a draft file into a dict | standard library | cli |
+| `src/jobwatch_intake/adapters/inbound/dto.py` | adapters.inbound | JobDraftDTO and GoldLabelFileDTO | pydantic, domain, application | cli, make_schemas, tests |
+| `src/jobwatch_intake/adapters/inbound/cli.py` | adapters.inbound | argparse, messages, exit codes 0, 1, and 2 | draft_reader, dto, application, domain | `__main__.py` |
+| `src/jobwatch_intake/adapters/outbound/__init__.py` | adapters.outbound | Marks the package | nothing | |
+| `src/jobwatch_intake/adapters/outbound/json_job_repository.py` | adapters.outbound | Writes `data/jobs/<id>.json` through a temp file, then os.replace | domain, stored_job_dto | composition |
+| `src/jobwatch_intake/adapters/outbound/stored_job_dto.py` | adapters.outbound | JSON shape of a saved posting | pydantic, domain | JSON store, make_schemas |
+| `src/jobwatch_intake/adapters/outbound/system_clock.py` | adapters.outbound | UTC, rounded to the second | standard library | composition |
+| `tools/make_schemas.py` | tool | Writes `schemas/*.schema.json` from the two DTOs | the DTOs | a person writing labels |
+| `tests/test_architecture.py` | test | Scans imports and rejects a dependency that points outward | standard library | pytest |
+| `tests/domain/` | test | Posting and label rules, no files | domain | pytest |
+| `tests/application/` | test | SaveJob with a fake store and a fixed clock | application, domain | pytest |
+| `tests/adapters/` | test | Draft file, JSON file, DTOs, exit codes | adapters, domain | pytest |
 
-## Quyết định
+## Decisions
 
-Domain không dùng Pydantic. Pydantic kiểm tra dạng: trường có mặt, kiểu, ngày ISO, mã ngôn ngữ, trường lạ. Luật nghiệp vụ (độ dài, url, id, hạn nộp, kỹ năng, mức ngôn ngữ, số năm) ở lại trong domain và ném `InvalidJobPosting` hoặc `InvalidGoldLabel`, kèm đủ lỗi của đợt đó. Đổi cách kiểm tra dạng không làm đổi luật nghiệp vụ.
+Domain does not use Pydantic. Pydantic checks shape: the field is present, the type, an ISO date, the language code, and an unknown field. Business rules (length, url, id, deadline, skills, language level, years) stay in the domain and raise `InvalidJobPosting` or `InvalidGoldLabel` with every error from that pass. Changing the shape check does not change the business rules.
 
-Cổng là `typing.Protocol`. Use case cần một kho và một đồng hồ, không cần biết đó là file JSON hay đồng hồ thật. Test truyền kho trong bộ nhớ và một giờ cố định. Không cần khung tiêm phụ thuộc.
+Ports are `typing.Protocol`. The use case needs a store and a clock, and it does not need to know whether those are a JSON file and the real clock. Tests pass an in-memory store and a fixed time. No dependency-injection framework is required.
 
-Ghi file theo cách nguyên tử. Nội dung được ghi vào file tạm cùng thư mục, rồi `os.replace` đổi tên đè file thật. Mất điện giữa chừng chỉ hỏng file tạm, không để lại JSON viết dở. Sau khi đổi tên không còn file `.tmp`.
+Files are written atomically. The bytes go to a temporary file in the same directory, then `os.replace` renames it over the real file. A crash mid-write can spoil only the temporary file, and it does not leave a half-written JSON file. After the rename, no `.tmp` file remains.
 
-Id lấy từ URL đã chuẩn hóa: bỏ khoảng trắng hai đầu, bỏ phần `#`, bỏ dấu `/` cuối, đưa về chữ thường, rồi lấy 12 ký tự đầu của SHA-256 với tiền tố `job-`. Cùng một link thì cùng một id, kể cả khi hoa thường hoặc fragment khác. Nhờ vậy chạy lại không tạo bản thứ hai. Không có URL thì khóa là `công ty|tên việc|500 ký tự đầu nội dung`, cũng chữ thường.
+The id comes from the normalized URL: strip both ends, drop the `#` fragment, drop a trailing `/`, lowercase, then take the first 12 hex characters of SHA-256 with the prefix `job-`. The same link is always the same id, including a different letter case or a different fragment. A second run therefore does not create a second copy. With no URL, the key is `company|title|first 500 characters of text`, also lowercased.
 
-## Thêm một kho khác
+## Adding another store
 
-Ví dụ Postgres, không sửa domain:
+Postgres, for example, without editing the domain:
 
-1. Viết `PostgresJobRepository` trong `adapters/outbound`. Đủ ba thao tác của `JobRepository`: `exists`, `locate`, `save`. `locate` trả về một chuỗi để CLI in (có thể là id trong bảng).
-2. Giữ nguyên `SaveJob`, `ports.py` và CLI. Use case không biết SQL.
-3. Sửa `composition.py` để tạo repository mới thay cho `JsonJobRepository`. Đây là file duy nhất được đổi khi đổi kho.
-4. Chạy `python -m pytest -q`. Test application vẫn dùng kho giả, nên không cần cơ sở dữ liệu để biết use case còn đúng.
+1. Write `PostgresJobRepository` in `adapters/outbound`. Implement the three `JobRepository` operations: `exists`, `locate`, and `save`. `locate` returns a string for the CLI to print (it can be the id in the table).
+2. Leave `SaveJob`, `ports.py`, and the CLI as they are. The use case does not know SQL.
+3. Change `composition.py` so it builds the new repository instead of `JsonJobRepository`. That is the only file that changes when the store changes.
+4. Run `python -m pytest -q`. The application tests still use the fake store, so a database is not required to see that the use case is still correct.

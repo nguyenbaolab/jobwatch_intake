@@ -1,66 +1,86 @@
 # jobwatch_intake
 
-Phần nhập tin của Jobwatch. Bạn dán một tin tuyển dụng vào file nháp; chương trình kiểm tra rồi ghi một file JSON cho mỗi tin. Nhãn vàng (đáp án gán tay) nằm ở thư mục khác, để bộ trích xuất không đọc được đáp án.
+Intake step of Jobwatch. It reads a job-posting draft, validates it, and stores one JSON file per posting.
+It also defines a gold-label format so an extractor can be scored later. There is no extractor in this repository.
 
-## Cài và chạy
+## Quickstart
 
-Cần Python 3.10 trở lên. Trên Windows (PowerShell):
+Python 3.10 or newer.
+
+Windows (PowerShell):
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
-python -m jobwatch_intake .\examples\junior-data-engineer-helsinki.txt --out .\data\jobs --verbose
+python -m jobwatch_intake .\examples\junior-data-engineer-helsinki.txt --out .\data\jobs
+python -m pytest -q
 ```
 
-`--out` là thư mục ghi JSON (mặc định `data/jobs`). `--force` ghi đè tin đã có. `--verbose` in log DEBUG của ba bước: đọc, kiểm tra, ghi.
+macOS and Linux:
 
-## Định dạng file nháp
-
-Vài dòng `khóa: giá trị`, một dòng chỉ có `---`, rồi nội dung tin. Dòng bắt đầu bằng `#` bị bỏ qua. Dòng `---` đầu tiên ngăn phần đầu và nội dung; `---` sau đó thuộc nội dung. Giá trị rỗng nghĩa là chưa có.
-
-Khóa: `source`, `url`, `language` (`fi`, `en`, `sv`), `title`, `company`, `location`, `published_at`, `deadline`. Ngày dạng `YYYY-MM-DD`. Xem `examples/`.
-
-## Mã thoát
-
-- `0`: đã lưu, hoặc tin đã có sẵn (không ghi đè; dùng `--force` nếu muốn ghi đè).
-- `1`: tin không hợp lệ. In `Tin không hợp lệ (N lỗi):` rồi mỗi lỗi một dòng `  - trường: lý do` ra stderr. Lỗi dạng (thiếu trường, sai kiểu, sai ngày, sai ngôn ngữ, trường lạ) in trước. Nếu dạng đúng mà sai luật nghiệp vụ, in đủ lỗi của đợt đó.
-- `2`: không đọc được file nháp (không thấy file, sai UTF-8, thiếu dòng `---`, dòng phần đầu không có dấu `:`).
-
-## Cây thư mục
-
-```
-pyproject.toml
-src/jobwatch_intake/
-  __main__.py          python -m jobwatch_intake
-  composition.py       ráp adapter vào use case
-  domain/              luật nghiệp vụ
-  application/         use case SaveJob và các cổng
-  adapters/inbound/    file nháp, DTO, dòng lệnh
-  adapters/outbound/   file JSON và đồng hồ
-tools/make_schemas.py
-schemas/               JSON Schema sinh từ DTO
-examples/              hai tin giả và nhãn trong examples/labels/
-data/jobs/             tin đã lưu (JSON không đưa lên git)
-data/labels/           nhãn thật
-docs/ARCHITECTURE.md
-docs/LABELING.md
-tests/
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+python -m jobwatch_intake examples/junior-data-engineer-helsinki.txt --out data/jobs
+python -m pytest -q
 ```
 
-## Test
+## Usage
+
+A draft is a few `key: value` lines, then one line that is only `---`, then the posting text. A line that starts with `#` is ignored. The first `---` separates the header from the text; a later `---` stays in the text. An empty value means the field is absent.
+
+Keys: `source`, `url`, `language` (`fi`, `en`, or `sv`), `title`, `company`, `location`, `published_at`, `deadline`. Dates use `YYYY-MM-DD`. See `examples/`.
+
+| Flag | Meaning |
+|---|---|
+| `--out DIR` | Directory for the JSON files. Default: `data/jobs`. |
+| `--force` | Overwrite a posting that is already saved. |
+| `--verbose` | Log the read, validate, and write steps at DEBUG. |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | Saved, or already saved and left unchanged. |
+| 1 | The posting content is invalid. stderr shows `Invalid job posting (N errors):` and one `  - field: reason` line per error. Shape errors (missing field, wrong type, bad date, bad language, unknown field) are printed first. If the shape is valid and a business rule fails, every error from that pass is printed. |
+| 2 | The draft could not be read or has the wrong shape (missing file, bad UTF-8, no `---` line, or a header line with no `:`). |
+
+## Architecture
+
+Dependencies point inward. Domain holds the business rules and uses only the standard library. Application holds the `SaveJob` use case and talks to the outside through `Protocol` ports. Adapters read the draft, print the CLI, and write JSON. `composition.py` is the only module that builds the concrete adapters. `__main__.py` is the only module that imports it.
+
+Details, diagrams, and the per-file table: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+Label rules: [docs/LABELING.md](docs/LABELING.md).
+
+## Project layout
+
+```
+pyproject.toml          project metadata
+src/jobwatch_intake/    library: domain, application, adapters, composition
+tools/                  generate JSON Schema from the DTOs
+schemas/                generated schema for a saved posting and a label
+examples/               two draft postings and their labels
+data/jobs/              saved postings (JSON is gitignored)
+data/labels/            real labels, kept apart from the postings
+docs/                   architecture and labeling rules
+tests/                  domain, application, adapter, and architecture tests
+```
+
+## Testing
 
 ```powershell
 python -m pytest -q
 ```
 
-Sinh lại schema sau khi sửa DTO:
+`tests/test_architecture.py` parses imports with `ast`. Domain may import only the standard library and other domain modules. Application may not import adapters or pydantic. Inbound and outbound adapters may not import each other. Nothing except `__main__.py` may import `composition`.
+
+After a DTO description changes, regenerate the schema:
 
 ```powershell
 python .\tools\make_schemas.py
 ```
 
-## Tài liệu
+## How this was built
 
-- [Kiến trúc](docs/ARCHITECTURE.md)
-- [Luật gán nhãn](docs/LABELING.md)
+I designed the architecture, validation rules and label format. Implementation was done with Cursor and Claude as coding assistants. I reviewed and can explain every file; see docs/ARCHITECTURE.md.
