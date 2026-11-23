@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.idea/
+.vscode/
+data/jobs/*.json
+data/labels/*.json
+/loi-*.txt
+/thieu-gach.txt
