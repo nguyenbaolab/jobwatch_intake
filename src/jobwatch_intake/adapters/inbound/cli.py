@@ -15,6 +15,13 @@ from pydantic import ValidationError
 
 from jobwatch_intake.adapters.inbound.draft_reader import DraftError, read_draft
 from jobwatch_intake.adapters.inbound.dto import JobDraftDTO
+from jobwatch_intake.adapters.inbound.gold_reader import GoldReadError, read_gold_labels
+from jobwatch_intake.application.evaluate_extractor import (
+    DuplicatePrediction,
+    EvaluateExtractor,
+    Evaluation,
+)
+from jobwatch_intake.application.ports import PredictionSource
 from jobwatch_intake.application.save_job import SaveJob
 from jobwatch_intake.domain.job_posting import InvalidJobPosting
 
@@ -72,3 +79,78 @@ def _print_errors(errors: list[tuple[str, str]]) -> None:
     print(f"Invalid job posting ({len(errors)} errors):", file=sys.stderr)
     for field, message in errors:
         print(f"  - {field}: {message}", file=sys.stderr)
+
+
+def run_eval(argv: list[str] | None, make_source: Callable[[], PredictionSource]) -> int:
+    parser = argparse.ArgumentParser(description="Score an extractor against gold labels.")
+    parser.add_argument("--labels", type=Path, required=True, help="directory of gold-label JSON files")
+    parser.add_argument("--fake", choices=["gold"], required=True, help="in-memory extractor; gold copies the label")
+    args = parser.parse_args(argv)
+    try:
+        labels = read_gold_labels(args.labels)
+    except GoldReadError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    try:
+        result = EvaluateExtractor(make_source()).execute(labels)
+    except DuplicatePrediction as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(_format_evaluation(result))
+    return 0
+
+
+def _format_evaluation(result: Evaluation) -> str:
+    lines = [
+        f"{'field':<24} {'n':>3} {'correct':>7} {'acc_all':>12} {'n_nonempty':>10} {'acc_gold_nonempty':>18}"
+    ]
+    for row in result.scores.fields:
+        lines.append(
+            f"{row.field:<24} {row.n:>3} {row.correct:>7} "
+            f"{_ratio(row.correct, row.n):>12} {row.n_nonempty:>10} "
+            f"{_ratio(row.correct_nonempty, row.n_nonempty):>18}"
+        )
+    lines.append("")
+    lines.append("skills")
+    for row in result.scores.skills:
+        lines.append(
+            f"{row.field:<24} precision {_ratio(row.tp, row.predicted)}"
+            f"  recall {_ratio(row.tp, row.gold)}"
+            f"  F1 {_ratio(2 * row.tp, row.predicted + row.gold)}"
+        )
+    lines.append("")
+    lines.append("wrong cells")
+    lines.append("job_id | field | gold | prediction")
+    if result.scores.mismatches:
+        for cell in result.scores.mismatches:
+            lines.append(
+                f"{cell.job_id} | {cell.field} | {_show(cell.gold)} | {_show(cell.prediction)}"
+            )
+    else:
+        lines.append("(none)")
+    lines.append("")
+    lines.append("missing_predictions")
+    lines.append(_ids(result.missing_predictions))
+    lines.append("")
+    lines.append("unlabeled_predictions")
+    lines.append(_ids(result.unlabeled_predictions))
+    return "\n".join(lines)
+
+
+def _ratio(numerator: int, denominator: int) -> str:
+    if denominator == 0:
+        return "n/a"
+    return f"{numerator}/{denominator} ({numerator / denominator:.2f})"
+
+
+def _show(value: object) -> str:
+    if value is None:
+        return "null"
+    raw = getattr(value, "value", value)
+    return str(raw)
+
+
+def _ids(job_ids: tuple[str, ...]) -> str:
+    if not job_ids:
+        return "(none)"
+    return "\n".join(job_ids)

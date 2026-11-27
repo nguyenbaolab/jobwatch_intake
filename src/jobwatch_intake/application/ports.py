@@ -1,14 +1,16 @@
 """Layer: application.
-Role: Ports the use case uses to reach a job store and a clock.
+Role: Ports the use cases use to reach the outside world.
 Depends on: the standard library and domain.
 """
 
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Protocol
+from typing import Protocol, Sequence
 
+from jobwatch_intake.domain.gold_label import GoldLabel
 from jobwatch_intake.domain.job_posting import JobPosting
+from jobwatch_intake.domain.scoring import Extraction
 
 
 class JobRepository(Protocol):
@@ -25,3 +27,8 @@ class JobRepository(Protocol):
 class Clock(Protocol):
     def now(self) -> datetime:
         """The current time. The system clock returns UTC, rounded to the second."""
+
+
+class PredictionSource(Protocol):
+    def predict(self, labels: Sequence[GoldLabel]) -> Sequence[Extraction]:
+        """Extractions the source can produce. A missing job_id is a missing prediction."""
